@@ -29,11 +29,6 @@ func (c *Connection) GetExternalDataProcessor(pathToFile string) VariantWrapper 
 	return c.Property("ExternalDataProcessors").Method("Create", pathToFile)
 }
 
-func (c *Connection) Const(name string) (k *Constant) {
-	c.Property("Константы").Property(name).Dispatched().Unmarshall(&k)
-	return
-}
-
 func (c *Connection) CreateUser() VariantWrapper {
 	return c.Property("InfoBaseUsers").Method("CreateUser")
 }
@@ -56,7 +51,7 @@ func (c *Connection) CatalogsManager(Name string) (manager CatalogsManager) {
 	return
 }
 
-func (c Connection) Unmarshall(template Templatable) {
+func (c *Connection) Unmarshall(template Templatable) {
 	disp := template.ToIDispatch()
 
 	val := reflect.ValueOf(template)
@@ -94,4 +89,22 @@ func (c Connection) Unmarshall(template Templatable) {
 			}
 		}
 	}
+}
+
+func (c *Connection) Const(name string, k Constant) {
+	w := c.Property("Constants").Property(name).Dispatched()
+	w.ToWrapperObject(k)
+	return
+}
+
+func (c *Connection) ConstString(name string) (k ConstantString) {
+	w := c.Property("Constants").Property(name).Dispatched()
+	w.ToWrapperObject(&k)
+	return
+}
+
+func (c *Connection) ConstTime(name string) (k ConstantTime) {
+	w := c.Property("Constants").Property(name).Dispatched()
+	CreateOleWrapper(w.IDispatch, &k)
+	return
 }

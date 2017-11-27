@@ -1,6 +1,16 @@
 package ole1c
 
-type Constant struct {
-	Get func() interface{} `ole:"method"`
+import "time"
+
+type Constant interface {
+}
+
+type ConstantString struct {
+	Get func() string `ole:"method"`
+	Set func(value interface{}) `ole:"method"`
+}
+
+type ConstantTime struct {
+	Get func() time.Time `ole:"method"`
 	Set func(value interface{}) `ole:"method"`
 }
