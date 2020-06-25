@@ -8,6 +8,8 @@ import (
 	"runtime"
 )
 
+type Float1C interface{}
+
 type Templatable interface {
 	ToIDispatch() *ole.IDispatch
 }
