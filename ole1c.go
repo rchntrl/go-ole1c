@@ -1,10 +1,10 @@
 package ole1c
 
 import (
+	"fmt"
 	"github.com/go-ole/go-ole"
 	"github.com/go-ole/go-ole/oleutil"
 	"reflect"
-	"fmt"
 	"runtime"
 )
 
@@ -15,6 +15,16 @@ type Templatable interface {
 // CreateConnector создает COM-соединение и возвращает обертку для объекта
 func CreateConnector() (conn DispatchWrapper, err error) {
 	ole.CoInitialize(0)
+	unknown, err := oleutil.CreateObject("V82.COMConnector")
+	if err != nil {
+		return
+	}
+	conn.IDispatch, err = unknown.QueryInterface(ole.IID_IDispatch)
+	return
+}
+
+func CreateConnectorEx(p uintptr) (conn DispatchWrapper, err error) {
+	ole.CoInitializeEx(p, 0)
 	unknown, err := oleutil.CreateObject("V82.COMConnector")
 	if err != nil {
 		return
@@ -47,12 +57,21 @@ func Unmarshall(disp *ole.IDispatch, template interface{}) {
 			oleField := field.Tag.Get("db1c")
 			if property.CanSet() && oleField != "" {
 				// присвоение значение поля
+				typename := field.Type.Name()
 				v := oleutil.MustGetProperty(disp, oleField)
-				switch field.Type.Name()  {
+				switch typename {
 				case "string":
 					property.SetString(v.ToString())
 				case "bool":
 					property.SetBool(v.Value().(bool))
+				case "Float1C":
+					if v.Value() == nil {
+						property.Set(reflect.ValueOf(0))
+					} else {
+						property.Set(reflect.ValueOf(v.Value()))
+					}
+				case "":
+					property.Set(reflect.ValueOf(v))
 				default:
 					property.Set(reflect.ValueOf(v.Value()))
 					continue
